@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+IMAGE_NAME="sentiment-db:latest"
+CONTAINER_NAME="sentiment-db-run"
+
+# Directorios/archivos que están en .gitignore y deben existir en host
+GRAPHS_DIR="$(pwd)/graphs"
+OUTPUT_DIR="$(pwd)/output"
+DB_FILE="$(pwd)/sentiment_analysis.db"
+
+echo "[1/3] Construyendo imagen Docker: ${IMAGE_NAME}"
+docker build -t "${IMAGE_NAME}" .
+
+echo "[2/3] Preparando volúmenes locales (graphs, output, db)"
+mkdir -p "${GRAPHS_DIR}" "${OUTPUT_DIR}"
+touch "${DB_FILE}"
+
+echo "[3/3] Ejecutando contenedor (los resultados se guardarán en ./graphs, ./output y ./sentiment_analysis.db)"
+docker run --rm \
+  --name "${CONTAINER_NAME}" \
+  -v "${GRAPHS_DIR}:/app/graphs" \
+  -v "${OUTPUT_DIR}:/app/output" \
+  -v "${DB_FILE}:/app/sentiment_analysis.db" \
+  "${IMAGE_NAME}"
+
+echo "✔ Proceso ETL finalizado. Revisa las carpetas ./graphs, ./output y el archivo ./sentiment_analysis.db"
+
